@@ -1,0 +1,19 @@
+{
+  "name": "Rutvik Gohel — Full Stack Developer",
+  "short_name": "Rutvik Gohel",
+  "description": "Full Stack Developer specializing in ASP.NET Core and React.js",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#030712",
+  "theme_color": "#030712",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["portfolio", "developer", "technology"]
+}
