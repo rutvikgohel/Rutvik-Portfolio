@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Build output
+frontend/dist/
+backend/**/bin/
+backend/**/obj/
+backend/**/publish/
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# IDE & OS
+.vscode/
+.idea/
+*.user
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+backend/api-dev.log
+
+# Vercel
+.vercel

@@ -1,5 +1,7 @@
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Portfolio.Application.Features.Contact.Commands;
 using Portfolio.Application.Interfaces;
 using Portfolio.Infrastructure.Data;
@@ -73,7 +75,7 @@ builder.Services.AddRateLimiter(options =>
 
 // Health checks
 builder.Services.AddHealthChecks()
-    .AddDbContextCheck<PortfolioDbContext>();
+    .AddCheck("self", () => HealthCheckResult.Healthy());
 
 // Logging
 builder.Logging.ClearProviders();

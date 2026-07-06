@@ -1,10 +1,11 @@
 import { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { ArrowDown, Download, Mail, Github, Linkedin, ChevronRight, MapPin } from 'lucide-react';
+import { ArrowDown, Download, Mail, Github, Linkedin, ChevronRight } from 'lucide-react';
 import { AuroraBackground } from './components/AuroraBackground';
 import { FloatingTechElements } from './components/FloatingTechElements';
 import { PERSONAL_INFO } from '@/lib/constants';
 import { useMagneticEffect } from '@/hooks/useMagneticEffect';
+import resumePdf from '@/Rutvik Gohel resume.pdf?url';
 
 const letterVariants = {
   hidden: { opacity: 0, y: 60, rotateX: -30 },
@@ -64,77 +65,6 @@ export function Hero() {
         style={{ y, opacity }}
         className="relative z-10 section-container w-full flex flex-col items-center text-center pt-24 sm:pt-32 pb-16 sm:pb-20"
       >
-        {/* Status badge */}
-        <motion.div
-          initial={{ opacity: 0, y: 20, scale: 0.9 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ delay: 0.2, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full mb-8 sm:mb-10"
-          style={{
-            background: 'rgba(15,23,42,0.85)',
-            border: '1px solid rgba(59,130,246,0.25)',
-            backdropFilter: 'blur(16px)',
-            boxShadow: '0 0 0 1px rgba(59,130,246,0.08), 0 4px 20px rgba(0,0,0,0.3)',
-          }}
-        >
-          <span className="relative flex h-2 w-2 flex-shrink-0">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400" />
-          </span>
-          <span className="text-xs font-semibold text-white/80 tracking-wide">Open to new opportunities</span>
-          <span className="text-primary/50 text-xs hidden sm:inline">·</span>
-          <span className="hidden sm:flex items-center gap-1 text-xs text-white/40 font-mono">
-            <MapPin size={10} />
-            Ahmedabad, India
-          </span>
-        </motion.div>
-
-        {/* Profile Avatar */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.4, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ delay: 0.3, type: 'spring', stiffness: 160, damping: 18 }}
-          className="relative mb-8 sm:mb-10"
-        >
-          <div className="relative w-24 h-24 sm:w-28 sm:h-28 mx-auto">
-            {/* Blurred glow layer behind */}
-            <div
-              className="absolute inset-0 rounded-full blur-2xl scale-110 opacity-50"
-              style={{ background: 'conic-gradient(from 0deg, #3B82F6, #8B5CF6, #06B6D4, #3B82F6)' }}
-            />
-            {/* Spinning conic-gradient ring */}
-            <motion.div
-              className="absolute inset-0 rounded-full"
-              style={{
-                background: 'conic-gradient(from 0deg, #3B82F6, #8B5CF6, #06B6D4, #3B82F6)',
-                padding: '2.5px',
-              }}
-              animate={{ rotate: 360 }}
-              transition={{ duration: 7, repeat: Infinity, ease: 'linear' }}
-            >
-              <div className="w-full h-full rounded-full" style={{ background: '#030712' }} />
-            </motion.div>
-            {/* Inner avatar */}
-            <div
-              className="absolute inset-[3px] rounded-full flex items-center justify-center"
-              style={{
-                background: 'linear-gradient(135deg, rgba(59,130,246,0.18) 0%, rgba(139,92,246,0.18) 100%)',
-                border: '1px solid rgba(255,255,255,0.06)',
-              }}
-            >
-              <span className="text-3xl sm:text-4xl font-black gradient-text select-none">RG</span>
-            </div>
-          </div>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.7 }}
-            className="text-center text-white/30 text-[10px] font-mono mt-2.5 tracking-[0.3em] uppercase"
-          >
-            Full Stack Developer
-          </motion.p>
-        </motion.div>
-
         {/* Main headline */}
         <motion.h1
           className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight leading-[0.92] mb-6"
@@ -192,7 +122,7 @@ export function Hero() {
           {/* Download Resume: blue tinted outline */}
           <motion.a
             ref={btnRef2}
-            href="/resume.pdf"
+            href={resumePdf}
             download="Rutvik_Gohel_Resume.pdf"
             onMouseMove={mm2}
             onMouseLeave={ml2}

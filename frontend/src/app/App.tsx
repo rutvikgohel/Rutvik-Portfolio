@@ -5,7 +5,6 @@ import { Toaster } from 'react-hot-toast';
 
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-import { CustomCursor } from '@/components/shared/CustomCursor';
 import { CommandPalette } from '@/components/shared/CommandPalette';
 import { Loader } from '@/features/loader/Loader';
 import { Hero } from '@/features/hero/Hero';
@@ -73,9 +72,6 @@ export function App() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6 }}
           >
-            {/* Custom cursor (desktop only) */}
-            <CustomCursor />
-
             {/* Command palette */}
             <CommandPalette isOpen={cmdOpen} onClose={() => setCmdOpen(false)} />
 

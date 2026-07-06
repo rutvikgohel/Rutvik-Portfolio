@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, ArrowRight, Download, Mail, ExternalLink, User, Briefcase, Code, GraduationCap, Phone } from 'lucide-react';
 import { PERSONAL_INFO } from '@/lib/constants';
+import resumePdf from '@/Rutvik Gohel resume.pdf?url';
 
 interface Command {
   id: string;
@@ -86,7 +87,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
       action: () => {
         onClose();
         const a = document.createElement('a');
-        a.href = '/resume.pdf';
+        a.href = resumePdf;
         a.download = 'Rutvik_Gohel_Resume.pdf';
         a.click();
       },

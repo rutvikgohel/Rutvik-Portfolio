@@ -4,6 +4,7 @@ import { Download, Terminal, Menu, X } from 'lucide-react';
 import { NAV_ITEMS, PERSONAL_INFO } from '@/lib/constants';
 import { useScrollProgress, useActiveSection } from '@/hooks/useScrollProgress';
 import { cn } from '@/lib/utils';
+import resumePdf from '@/Rutvik Gohel resume.pdf?url';
 
 interface NavbarProps {
   onCommandPaletteOpen: () => void;
@@ -105,7 +106,7 @@ export function Navbar({ onCommandPaletteOpen }: NavbarProps) {
 
             {/* Resume download */}
             <motion.a
-              href="/resume.pdf"
+              href={resumePdf}
               download="Rutvik_Gohel_Resume.pdf"
               className="hidden sm:flex items-center gap-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 border border-primary/30 hover:border-primary/50 rounded-xl text-primary text-sm font-medium transition-all duration-200"
               whileHover={{ scale: 1.02 }}
@@ -163,7 +164,7 @@ export function Navbar({ onCommandPaletteOpen }: NavbarProps) {
                   Command Palette
                 </button>
                 <a
-                  href="/resume.pdf"
+                  href={resumePdf}
                   download="Rutvik_Gohel_Resume.pdf"
                   className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-primary/10 border border-primary/30 text-primary text-sm font-medium"
                   onClick={() => setMobileOpen(false)}
