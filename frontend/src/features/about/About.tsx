@@ -1,290 +1,222 @@
-import { useRef, useEffect, useState } from 'react';
-import { motion, useInView } from 'framer-motion';
-import { Code2, Database, Server, Sparkles, Coffee, BookOpen, Target, ArrowRight } from 'lucide-react';
-import { GlassCard } from '@/components/ui/GlassCard';
-import { SectionLabel } from '@/components/shared/AnimatedText';
-import { PERSONAL_INFO, STATS, SOFT_SKILLS } from '@/lib/constants';
-import { fadeInUp, staggerChildren } from '@/lib/utils';
-
-function AnimatedCounter({ value, suffix = '' }: { value: string; suffix?: string }) {
-  const [displayed, setDisplayed] = useState('0');
-  const ref = useRef<HTMLSpanElement>(null);
-  const inView = useInView(ref, { once: true });
-  const isFloat = value.includes('.');
-
-  useEffect(() => {
-    if (!inView) return;
-    const target = parseFloat(value);
-    const duration = 1800;
-    const start = Date.now();
-    const tick = () => {
-      const elapsed = Date.now() - start;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 4);
-      const current = eased * target;
-      setDisplayed(isFloat ? current.toFixed(2) : Math.round(current).toString());
-      if (progress < 1) requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
-  }, [inView, value, isFloat]);
-
-  return (
-    <span ref={ref} className="tabular-nums">
-      {displayed}{suffix}
-    </span>
-  );
-}
-
-const STRENGTH_ITEMS = [
-  {
-    icon: Server,
-    color: '#3B82F6',
-    bg: 'rgba(59,130,246,0.12)',
-    border: 'rgba(59,130,246,0.25)',
-    glow: 'rgba(59,130,246,0.15)',
-    title: 'Backend Architect',
-    desc: 'ASP.NET Core, C#, clean API design with SOLID principles and proper separation of concerns.',
-  },
-  {
-    icon: Code2,
-    color: '#06B6D4',
-    bg: 'rgba(6,182,212,0.12)',
-    border: 'rgba(6,182,212,0.25)',
-    glow: 'rgba(6,182,212,0.15)',
-    title: 'Frontend Developer',
-    desc: 'React.js with TypeScript, Tailwind CSS — building responsive, accessible UIs with modern practices.',
-  },
-  {
-    icon: Database,
-    color: '#8B5CF6',
-    bg: 'rgba(139,92,246,0.12)',
-    border: 'rgba(139,92,246,0.25)',
-    glow: 'rgba(139,92,246,0.15)',
-    title: 'Database Engineer',
-    desc: 'PostgreSQL and SQL Server with Entity Framework Core — schema design, queries, and optimization.',
-  },
-  {
-    icon: Target,
-    color: '#F59E0B',
-    bg: 'rgba(245,158,11,0.12)',
-    border: 'rgba(245,158,11,0.25)',
-    glow: 'rgba(245,158,11,0.15)',
-    title: 'Problem Solver',
-    desc: 'Breaking down complex requirements into clean, maintainable solutions with real business value.',
-  },
-];
+import { useRef } from 'react';
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { PERSONAL_INFO } from '@/lib/constants';
 
 export function About() {
   const sectionRef = useRef<HTMLElement>(null);
-  useInView(sectionRef, { once: true, margin: '-80px' });
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  // Motion values for 3D card tilt
+  const tiltX = useMotionValue(0);
+  const tiltY = useMotionValue(0);
+
+  // Springs for smooth tilt transition
+  const springX = useSpring(tiltX, { damping: 25, stiffness: 200 });
+  const springY = useSpring(tiltY, { damping: 25, stiffness: 200 });
+
+  // Map offsets to 3D rotation angles
+  const rotateX = useTransform(springY, [-0.5, 0.5], [15, -15]); // Inverse Y to tilt toward cursor
+  const rotateY = useTransform(springX, [-0.5, 0.5], [-15, 15]);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    tiltX.set(x);
+    tiltY.set(y);
+  };
+
+  const handleMouseLeave = () => {
+    tiltX.set(0);
+    tiltY.set(0);
+  };
 
   return (
-    <section ref={sectionRef} id="about" className="relative py-20 sm:py-32 overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 bg-dots opacity-[0.05]" />
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse at 80% 50%, rgba(139,92,246,0.07) 0%, transparent 60%)' }}
-      />
-
-      <div className="section-container relative">
-        {/* Header */}
-        <div className="mb-10 sm:mb-16">
-          <SectionLabel>About Me</SectionLabel>
-          <motion.h2
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-            className="text-3xl sm:text-5xl font-bold text-white mt-4 tracking-tight"
-          >
-            The developer behind
-            <br />
-            <span className="gradient-text">the keyboard</span>
-          </motion.h2>
+    <section ref={sectionRef} id="about" className="relative pt-12 pb-16 md:pt-24 md:pb-24 border-b border-border">
+      {/* Current Status Band (Now) */}
+      <motion.div
+        initial={{ opacity: 0, filter: 'blur(12px)', y: 32 }}
+        whileInView={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
+        viewport={{ once: true, margin: '-100px' }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        className="border-y border-border bg-bg-alt/20 py-4 px-6 md:px-12 mb-16 md:mb-24"
+      >
+        <div className="mx-auto max-w-[1200px] grid grid-cols-1 md:grid-cols-[auto_repeat(4,minmax(0,1fr))] items-start gap-4 md:gap-8">
+          {/* Now label */}
+          <div className="flex items-center gap-2 font-mono text-[10px] tracking-[0.3em] uppercase text-peach md:min-h-[18px]">
+            <span className="relative inline-flex items-center justify-center h-1.5 w-1.5">
+              <span className="absolute inset-0 animate-ping rounded-full bg-peach/50"></span>
+              <span className="relative rounded-full bg-peach h-1 w-1"></span>
+            </span>
+            <span>Now · Jul '26</span>
+          </div>
+          {/* Building */}
+          <div className="flex flex-col text-left">
+            <span className="font-mono text-[9px] tracking-[0.22em] uppercase text-ink-muted">Building</span>
+            <span className="font-serif text-sm font-semibold italic text-ink leading-tight">School Management Portals</span>
+            <span className="text-[11px] leading-snug text-ink-muted">Role-Based Access Control systems</span>
+          </div>
+          {/* Reading */}
+          <div className="flex flex-col text-left">
+            <span className="font-mono text-[9px] tracking-[0.22em] uppercase text-ink-muted">Reading</span>
+            <span className="font-serif text-sm font-semibold italic text-ink leading-tight">Clean Architecture</span>
+            <span className="text-[11px] leading-snug text-ink-muted">Robert C. Martin</span>
+          </div>
+          {/* Studying */}
+          <div className="flex flex-col text-left">
+            <span className="font-mono text-[9px] tracking-[0.22em] uppercase text-ink-muted">Exploring</span>
+            <span className="font-serif text-sm font-semibold italic text-ink leading-tight">CQRS & MediatR Patterns</span>
+            <span className="text-[11px] leading-snug text-ink-muted">Event sourcing & system design</span>
+          </div>
+          {/* Last Shipped */}
+          <div className="flex flex-col text-left">
+            <span className="font-mono text-[9px] tracking-[0.22em] uppercase text-ink-muted">Last Shipped</span>
+            <span className="font-serif text-sm font-semibold italic text-ink leading-tight">Pharmacy Operations API</span>
+            <span className="text-[11px] leading-snug text-ink-muted">Secure JWT clinical workflows</span>
+          </div>
         </div>
+      </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 sm:gap-12 items-start">
-          {/* Left: Story */}
-          <motion.div
-            className="lg:col-span-3 space-y-6 sm:space-y-8"
-            variants={staggerChildren}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-          >
-            {/* First paragraph as pull quote */}
-            <motion.div
-              variants={fadeInUp}
-              className="relative pl-5"
-              style={{ borderLeft: '3px solid rgba(59,130,246,0.5)' }}
-            >
-              <p className="text-white/80 leading-relaxed text-base sm:text-lg font-medium">
-                {PERSONAL_INFO.bio[0]}
-              </p>
-            </motion.div>
+      <div className="section-container relative z-10">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, filter: 'blur(12px)', y: 32 }}
+          whileInView={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
+          viewport={{ once: true, margin: '-100px' }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="mb-10 md:mb-16 text-left"
+        >
+          <div className="eyebrow mb-4">
+            <span className="num">01</span>
+            <span className="rule"></span>
+            <span>Background & Working Style</span>
+          </div>
+          <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl font-semibold leading-tight tracking-tight text-ink">
+            A software engineer <span className="italic text-peach">who thinks in systems</span>
+          </h2>
+        </motion.div>
 
-            {PERSONAL_INFO.bio.slice(1).map((paragraph, i) => (
-              <motion.p
-                key={i}
-                variants={fadeInUp}
-                className="text-white/55 leading-relaxed text-base sm:text-lg"
-              >
-                {paragraph}
-              </motion.p>
-            ))}
-
-            {/* Soft skills */}
-            <motion.div variants={fadeInUp}>
-              <p className="text-xs font-bold text-white/30 uppercase tracking-widest mb-4">Soft Skills</p>
-              <div className="flex flex-wrap gap-2">
-                {SOFT_SKILLS.map((skill) => (
-                  <motion.span
-                    key={skill}
-                    whileHover={{ scale: 1.06, y: -2 }}
-                    className="px-3.5 py-1.5 rounded-lg text-sm font-medium cursor-default transition-all duration-200"
-                    style={{
-                      background: 'rgba(255,255,255,0.05)',
-                      border: '1px solid rgba(255,255,255,0.10)',
-                      color: 'rgba(255,255,255,0.65)',
-                    }}
-                  >
-                    {skill}
-                  </motion.span>
+        {/* Marquee disciplines list */}
+        <div className="mb-12 border-y border-border py-4">
+          <div className="marquee-track">
+            <div className="mq-rail">
+              <div className="mq-group">
+                {['Production React', 'ASP.NET Core', 'PostgreSQL', 'C# Backend', 'TypeScript', 'Clean Architecture', 'SOLID Principles', 'Database Schema Design', 'Entity Framework', 'REST API Design'].map((item) => (
+                  <span key={item} className="flex items-center gap-4 font-mono text-[10px] tracking-[0.2em] uppercase text-ink-muted">
+                    <span>{item}</span>
+                    <span className="text-peach">•</span>
+                  </span>
                 ))}
               </div>
-            </motion.div>
-
-            {/* Mindset card */}
-            <motion.div
-              variants={fadeInUp}
-              className="p-5 sm:p-6 rounded-2xl"
-              style={{
-                background: 'linear-gradient(135deg, rgba(59,130,246,0.07) 0%, rgba(139,92,246,0.07) 100%)',
-                border: '1px solid rgba(59,130,246,0.15)',
-              }}
-            >
-              <div className="flex items-start gap-4">
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
-                  style={{ background: 'rgba(59,130,246,0.15)', border: '1px solid rgba(59,130,246,0.3)' }}
-                >
-                  <Sparkles size={18} className="text-primary" />
-                </div>
-                <div>
-                  <p className="text-white font-semibold text-sm mb-1.5">My Engineering Mindset</p>
-                  <p className="text-white/55 text-sm leading-relaxed">
-                    I approach every project as a product engineer — I don't just write code, I think about system design, performance, user experience, and maintainability. Clean architecture isn't a preference; it's a non-negotiable.
-                  </p>
-                </div>
+              <div className="mq-group" aria-hidden="true">
+                {['Production React', 'ASP.NET Core', 'PostgreSQL', 'C# Backend', 'TypeScript', 'Clean Architecture', 'SOLID Principles', 'Database Schema Design', 'Entity Framework', 'REST API Design'].map((item) => (
+                  <span key={item + '-dup'} className="flex items-center gap-4 font-mono text-[10px] tracking-[0.2em] uppercase text-ink-muted">
+                    <span>{item}</span>
+                    <span className="text-peach">•</span>
+                  </span>
+                ))}
               </div>
-            </motion.div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start text-left">
+          {/* Left Column: Narrative description */}
+          <motion.div
+            initial={{ opacity: 0, filter: 'blur(12px)', y: 32 }}
+            whileInView={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
+            viewport={{ once: true, margin: '-100px' }}
+            transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            className="lg:col-span-7 flex flex-col gap-6"
+          >
+            <p className="drop-cap text-lg leading-relaxed text-ink">
+              {PERSONAL_INFO.bio[0]} I enjoy crafting the clean interfaces users rely on daily, alongside the rigorous backend patterns and schema boundaries that ensure security and durability under the hood.
+            </p>
+            <p className="text-base leading-relaxed text-ink-muted">
+              {PERSONAL_INFO.bio[1]} Over the course of my projects, I've designed role-based portals for school administrations, clinical inventories for local pharmacies, and modern job search applications.
+            </p>
+            <p className="text-base leading-relaxed text-ink-muted">
+              {PERSONAL_INFO.bio[2]} I am drawn to environments where developers take full ownership of the lifecycle: modeling data, designing component APIs, structuring testing boundaries, and refining details. Currently expanding my expertise in Clean Architecture, CQRS, and type-safe frontends.
+            </p>
+            
+            {/* Signature line */}
+            <div className="flex items-center gap-4 border-t border-dashed border-border pt-6 mt-4">
+              <span className="font-mono text-peach">/</span>
+              <span className="font-serif text-xl font-semibold italic text-ink">{PERSONAL_INFO.name}</span>
+              <span className="font-mono text-[9px] tracking-[0.25em] text-ink-muted uppercase">· Software Engineer</span>
+            </div>
           </motion.div>
 
-          {/* Right: Stats + Strengths */}
-          <div className="lg:col-span-2 space-y-5">
-            {/* Stats grid — bigger numbers */}
-            <motion.div
-              className="grid grid-cols-2 gap-3 sm:gap-4"
-              variants={staggerChildren}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-            >
-              {STATS.map((stat) => (
-                <motion.div key={stat.label} variants={fadeInUp}>
-                  <GlassCard className="p-5 sm:p-6 group hover:border-primary/25 transition-all duration-300 text-center">
-                    <div className="text-4xl sm:text-5xl font-black gradient-text stat-num mb-2 leading-none group-hover:scale-105 transition-transform duration-300">
-                      <AnimatedCounter value={stat.value} suffix={stat.suffix} />
-                    </div>
-                    <p className="text-white/80 text-sm font-semibold">{stat.label}</p>
-                    <p className="text-white/35 text-xs mt-1 leading-snug">{stat.description}</p>
-                  </GlassCard>
-                </motion.div>
-              ))}
-            </motion.div>
+          {/* Right Column: Graduation Vitals Card */}
+          <motion.aside
+            initial={{ opacity: 0, filter: 'blur(12px)', y: 32 }}
+            whileInView={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
+            viewport={{ once: true, margin: '-100px' }}
+            transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="lg:col-span-5 w-full flex flex-col gap-6 lg:pl-6"
+          >
+            {/* Profile frame with user image (3D Tilt Container) */}
+            <div className="perspective-1000 w-full">
+              <motion.div
+                ref={cardRef}
+                onMouseMove={handleMouseMove}
+                onMouseLeave={handleMouseLeave}
+                style={{ rotateX, rotateY, transformStyle: 'preserve-3d' }}
+                className="relative overflow-hidden rounded-lg aspect-[4/5] border border-border cursor-pointer preserve-3d"
+              >
+                <img
+                  src="/rutvik-graduation.jpg"
+                  alt={`${PERSONAL_INFO.name} portrait`}
+                  className="w-full h-full object-cover pointer-events-none"
+                  style={{ filter: 'var(--portrait-filter)' }}
+                />
+                <div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{ backgroundColor: 'var(--portrait-tint)', mixBlendMode: 'multiply' }}
+                />
+              </motion.div>
+            </div>
 
-            {/* Strength cards — bigger icons, gradient fills */}
-            <motion.div
-              className="space-y-3"
-              variants={staggerChildren}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-            >
-              {STRENGTH_ITEMS.map((item) => (
-                <motion.div key={item.title} variants={fadeInUp}>
-                  <GlassCard className="group cursor-default overflow-hidden">
-                    <div className="p-4 flex items-start gap-4">
-                      {/* Larger icon box */}
-                      <div
-                        className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110"
-                        style={{
-                          backgroundColor: item.bg,
-                          border: `1px solid ${item.border}`,
-                          boxShadow: `0 0 16px ${item.glow}`,
-                        }}
-                      >
-                        <item.icon size={20} style={{ color: item.color }} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-white/90 text-sm font-bold mb-1">{item.title}</p>
-                        <p className="text-white/45 text-xs leading-relaxed">{item.desc}</p>
-                      </div>
-                      <ArrowRight
-                        size={14}
-                        className="flex-shrink-0 mt-0.5 opacity-0 group-hover:opacity-100 transition-all duration-300 -translate-x-2 group-hover:translate-x-0"
-                        style={{ color: item.color }}
-                      />
-                    </div>
-                    {/* Bottom color accent on hover */}
-                    <div
-                      className="h-[2px] w-0 group-hover:w-full transition-all duration-500"
-                      style={{ background: `linear-gradient(90deg, ${item.color}, transparent)` }}
-                    />
-                  </GlassCard>
-                </motion.div>
-              ))}
-            </motion.div>
+            {/* Vitals Label */}
+            <div className="flex items-baseline justify-between gap-4 border-b border-border pb-2 mt-4">
+              <span className="font-serif text-lg font-bold text-ink">Vitals</span>
+              <span className="font-mono text-[9px] tracking-[0.28em] uppercase text-ink-muted">Vol. 01 · '26</span>
+            </div>
 
-            {/* Currently section */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-            >
-              <GlassCard className="p-5 hover:border-green-400/20 transition-all duration-300">
-                <div className="flex items-center gap-2.5 mb-4">
-                  <div className="relative w-2.5 h-2.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full w-2.5 h-2.5 bg-green-400" />
-                  </div>
-                  <p className="text-xs font-bold text-green-400/80 uppercase tracking-widest">Currently Active</p>
-                </div>
-                <div className="space-y-3.5">
-                  {[
-                    { icon: Coffee, color: '#3B82F6', label: 'Building at', highlight: 'TretaGen' },
-                    { icon: BookOpen, color: '#8B5CF6', label: 'Exploring', highlight: 'Clean Architecture & CQRS' },
-                    { icon: Target, color: '#06B6D4', label: 'Open to', highlight: 'challenging full-stack roles' },
-                  ].map(({ icon: Icon, color, label, highlight }) => (
-                    <div key={label} className="flex items-start gap-2.5 group/item">
-                      <div
-                        className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
-                        style={{ background: `${color}15`, border: `1px solid ${color}25` }}
-                      >
-                        <Icon size={13} style={{ color }} />
-                      </div>
-                      <p className="text-white/55 text-sm leading-relaxed">
-                        {label}{' '}
-                        <span className="text-white/90 font-semibold">{highlight}</span>
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </GlassCard>
-            </motion.div>
-          </div>
+            {/* Vitals items list */}
+            <dl className="flex flex-col gap-4">
+              <div className="grid grid-cols-[88px_1fr] items-baseline gap-4 border-b border-border pb-3">
+                <dt className="font-mono text-[9px] tracking-[0.22em] uppercase text-peach">Currently</dt>
+                <dd className="flex flex-col text-left">
+                  <span className="font-serif text-sm font-semibold italic text-ink">Full Stack Developer</span>
+                  <span className="text-[12px] leading-snug text-ink-muted">TretaGen · ASP.NET Core, React, PostgreSQL</span>
+                </dd>
+              </div>
+              <div className="grid grid-cols-[88px_1fr] items-baseline gap-4 border-b border-border pb-3">
+                <dt className="font-mono text-[9px] tracking-[0.22em] uppercase text-peach">Previously</dt>
+                <dd className="flex flex-col text-left">
+                  <span className="font-serif text-sm font-semibold italic text-ink">Web Developer Trainee</span>
+                  <span className="text-[12px] leading-snug text-ink-muted">Novanectar Services · HTML, CSS, JS Portal Development</span>
+                </dd>
+              </div>
+              <div className="grid grid-cols-[88px_1fr] items-baseline gap-4 border-b border-border pb-3">
+                <dt className="font-mono text-[9px] tracking-[0.22em] uppercase text-peach">Based in</dt>
+                <dd className="flex flex-col text-left">
+                  <span className="font-serif text-sm font-semibold italic text-ink">Ahmedabad, India</span>
+                  <span className="text-[12px] leading-snug text-ink-muted">MCA Graduate, Indus University</span>
+                </dd>
+              </div>
+              <div className="grid grid-cols-[88px_1fr] items-baseline gap-4 border-b border-border pb-3">
+                <dt className="font-mono text-[9px] tracking-[0.22em] uppercase text-peach">Open to</dt>
+                <dd className="flex flex-col text-left">
+                  <span className="font-serif text-sm font-semibold italic text-ink">Full-time & Freelance roles</span>
+                  <span className="text-[12px] leading-snug text-ink-muted">Product-oriented, scalable software workflows</span>
+                </dd>
+              </div>
+            </dl>
+          </motion.aside>
         </div>
       </div>
     </section>

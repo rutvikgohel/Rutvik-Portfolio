@@ -1,182 +1,108 @@
-import { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Download, Terminal, Menu, X } from 'lucide-react';
-import { NAV_ITEMS, PERSONAL_INFO } from '@/lib/constants';
-import { useScrollProgress, useActiveSection } from '@/hooks/useScrollProgress';
-import { cn } from '@/lib/utils';
+import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import { Download } from 'lucide-react';
+import { PERSONAL_INFO, NAV_ITEMS } from '@/lib/constants';
+import { CelestialToggle } from '@/components/ui/CelestialToggle';
 import resumePdf from '@/Rutvik Gohel resume.pdf?url';
 
-interface NavbarProps {
-  onCommandPaletteOpen: () => void;
-}
-
-export function Navbar({ onCommandPaletteOpen }: NavbarProps) {
+export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const scrollProgress = useScrollProgress();
-  const activeSection = useActiveSection(NAV_ITEMS.map((n) => n.section));
+  const [activeSection, setActiveSection] = useState('hero');
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 40);
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 40);
+      
+      // Track active section for nav highlighting
+      const scrollPos = window.scrollY + window.innerHeight / 3;
+      const sections = ['hero', 'about', 'experience', 'projects', 'skills', 'contact'];
+      for (const section of sections) {
+        const el = document.getElementById(section);
+        if (el) {
+          const top = el.offsetTop;
+          const height = el.offsetHeight;
+          if (scrollPos >= top && scrollPos < top + height) {
+            setActiveSection(section);
+            break;
+          }
+        }
+      }
+    };
     window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleNavClick = useCallback((href: string) => {
-    setMobileOpen(false);
-    const id = href.replace('#', '');
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
-  }, []);
+  const handleNavClick = (e: React.MouseEvent<HTMLButtonElement>, sectionId: string) => {
+    e.preventDefault();
+    const el = document.getElementById(sectionId);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   return (
-    <>
-      {/* Progress bar */}
-      <div
-        className="fixed top-0 left-0 h-[2px] bg-gradient-to-r from-primary via-secondary to-accent z-[1001] transition-all duration-100"
-        style={{ width: `${scrollProgress * 100}%` }}
-      />
+    <motion.nav
+      initial={{ y: -20, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${
+        scrolled
+          ? 'bg-bg/85 backdrop-blur-md border-border shadow-warm-sm py-3'
+          : 'bg-transparent border-transparent py-5'
+      }`}
+    >
+      <div className="section-container flex items-center justify-between">
+        {/* Brand Logo */}
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="flex items-center gap-2 text-left group"
+        >
+          <span className="font-sans text-lg font-bold tracking-tight text-ink group-hover:text-peach transition-colors">
+            {PERSONAL_INFO.name}
+          </span>
+          <span className="w-1.5 h-1.5 rounded-full bg-peach shadow-[0_0_8px_var(--peach)]" />
+        </button>
 
-      <motion.nav
-        initial={{ y: -80, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className={cn(
-          'fixed top-0 left-0 right-0 z-[1000] transition-all duration-500',
-          scrolled || mobileOpen
-            ? 'py-3 bg-[#030712]/95 backdrop-blur-xl border-b border-white/5 shadow-lg shadow-black/20'
-            : 'py-4 sm:py-5 bg-transparent'
-        )}
-      >
-        <div className="section-container flex items-center justify-between">
-          {/* Logo */}
-          <motion.a
-            href="#"
-            onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-            className="relative group flex items-center gap-2"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <div className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center font-bold text-white text-sm shadow-lg shadow-primary/30 group-hover:shadow-primary/50 transition-shadow duration-300">
-              RG
-              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary to-secondary opacity-0 group-hover:opacity-100 blur-md transition-opacity duration-300 -z-10" />
-            </div>
-            <span className="font-semibold text-white/90 text-sm hidden sm:block tracking-wide">
-              Rutvik Gohel
-            </span>
-          </motion.a>
-
-          {/* Desktop nav */}
-          <div className="hidden md:flex items-center gap-1">
-            {NAV_ITEMS.map((item) => (
+        {/* Center Navigation Links */}
+        <div className="hidden md:flex items-center gap-6">
+          {NAV_ITEMS.map((item) => {
+            const isActive = activeSection === item.section;
+            return (
               <button
                 key={item.section}
-                onClick={() => handleNavClick(item.href)}
-                className={cn(
-                  'relative px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200',
-                  activeSection === item.section
-                    ? 'text-white'
-                    : 'text-white/50 hover:text-white/80'
-                )}
+                onClick={(e) => handleNavClick(e, item.section)}
+                className={`relative font-sans text-xs uppercase tracking-wider font-semibold transition-colors duration-300 py-1 ${
+                  isActive ? 'text-peach' : 'text-ink-muted hover:text-ink'
+                }`}
               >
-                {activeSection === item.section && (
-                  <motion.div
-                    layoutId="nav-indicator"
-                    className="absolute inset-0 bg-white/8 rounded-lg border border-white/10"
-                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                {item.label}
+                {isActive && (
+                  <motion.span
+                    layoutId="activeNavIndicator"
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-peach rounded"
+                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                   />
                 )}
-                <span className="relative z-10">{item.label}</span>
               </button>
-            ))}
-          </div>
-
-          {/* Right actions */}
-          <div className="flex items-center gap-2">
-            {/* Command palette trigger */}
-            <button
-              onClick={onCommandPaletteOpen}
-              className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/8 transition-all duration-200 text-white/40 hover:text-white/70 text-xs"
-            >
-              <Terminal size={14} />
-              <span>Cmd</span>
-              <kbd className="px-1.5 py-0.5 bg-white/5 rounded text-[10px] border border-white/10">
-                {navigator.platform.startsWith('Mac') ? '⌘' : 'Ctrl'}+K
-              </kbd>
-            </button>
-
-            {/* Resume download */}
-            <motion.a
-              href={resumePdf}
-              download="Rutvik_Gohel_Resume.pdf"
-              className="hidden sm:flex items-center gap-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 border border-primary/30 hover:border-primary/50 rounded-xl text-primary text-sm font-medium transition-all duration-200"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <Download size={14} />
-              <span>Resume</span>
-            </motion.a>
-
-            {/* Mobile menu toggle */}
-            <button
-              onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-colors"
-            >
-              {mobileOpen ? <X size={18} /> : <Menu size={18} />}
-            </button>
-          </div>
+            );
+          })}
         </div>
-      </motion.nav>
 
-      {/* Mobile menu */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed top-[60px] left-0 right-0 z-[999] bg-[#030712]/95 backdrop-blur-xl border-b border-white/10 md:hidden overflow-hidden"
+        {/* Right Actions: CelestialToggle + Resume */}
+        <div className="flex items-center gap-4">
+          <CelestialToggle />
+          
+          <a
+            href={resumePdf}
+            download="Rutvik_Gohel_Resume.pdf"
+            className="inline-flex items-center gap-2 border border-border bg-bg hover:border-peach hover:text-peach text-ink font-sans text-xs font-semibold px-4 py-2 rounded-full shadow-warm-sm transition-all duration-300"
           >
-            <div className="section-container py-4 space-y-1">
-              {NAV_ITEMS.map((item, i) => (
-                <motion.button
-                  key={item.section}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.05 }}
-                  onClick={() => handleNavClick(item.href)}
-                  className={cn(
-                    'w-full text-left px-4 py-3 rounded-xl text-sm font-medium transition-colors',
-                    activeSection === item.section
-                      ? 'bg-primary/10 text-primary border border-primary/20'
-                      : 'text-white/60 hover:text-white hover:bg-white/5'
-                  )}
-                >
-                  {item.label}
-                </motion.button>
-              ))}
-              <div className="pt-2 flex gap-2">
-                <button
-                  onClick={() => { setMobileOpen(false); onCommandPaletteOpen(); }}
-                  className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-white/5 border border-white/10 text-white/60 text-sm"
-                >
-                  <Terminal size={14} />
-                  Command Palette
-                </button>
-                <a
-                  href={resumePdf}
-                  download="Rutvik_Gohel_Resume.pdf"
-                  className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-primary/10 border border-primary/30 text-primary text-sm font-medium"
-                  onClick={() => setMobileOpen(false)}
-                >
-                  <Download size={14} />
-                  Resume
-                </a>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+            <Download size={12} />
+            <span className="hidden sm:inline">Resume</span>
+          </a>
+        </div>
+      </div>
+    </motion.nav>
   );
 }

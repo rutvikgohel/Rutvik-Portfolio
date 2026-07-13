@@ -10,61 +10,26 @@ interface AnimatedTextProps {
   once?: boolean;
 }
 
-const charVariants = {
-  hidden: { opacity: 0, y: 20, rotateX: -20 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    rotateX: 0,
-    transition: {
-      delay: i * 0.03,
-      duration: 0.5,
-      ease: [0.16, 1, 0.3, 1],
-    },
-  }),
-};
-
-const wordVariants = {
-  hidden: { opacity: 0, y: 30, filter: 'blur(4px)' },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    filter: 'blur(0px)',
-    transition: {
-      delay: i * 0.06,
-      duration: 0.6,
-      ease: [0.16, 1, 0.3, 1],
-    },
-  }),
-};
-
-export function AnimatedText({
-  text,
-  className,
-  delay = 0,
-  stagger = 0.06,
-  type = 'words',
-  once = true,
-}: AnimatedTextProps) {
+export function AnimatedText({ text, className, delay = 0, stagger = 0.06, type = 'words', once = true }: AnimatedTextProps) {
   if (type === 'chars') {
     const chars = text.split('');
     return (
       <motion.span
         className={cn('inline-block', className)}
-        initial="hidden"
-        whileInView="visible"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
         viewport={{ once }}
-        aria-label={text}
       >
         {chars.map((char, i) => (
           <motion.span
             key={i}
-            custom={i + delay / 0.03}
-            variants={charVariants}
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once }}
+            transition={{ delay: i * 0.03 + delay, duration: 0.3 }}
             className="inline-block"
-            style={{ display: char === ' ' ? 'inline' : 'inline-block' }}
           >
-            {char === ' ' ? ' ' : char}
+            {char === ' ' ? '\u00A0' : char}
           </motion.span>
         ))}
       </motion.span>
@@ -75,16 +40,17 @@ export function AnimatedText({
   return (
     <motion.span
       className={cn('inline', className)}
-      initial="hidden"
-      whileInView="visible"
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
       viewport={{ once }}
-      aria-label={text}
     >
       {words.map((word, i) => (
         <span key={i} className="inline-block overflow-hidden mr-[0.25em]">
           <motion.span
-            custom={i + delay / stagger}
-            variants={wordVariants}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once }}
+            transition={{ delay: i * stagger + delay, duration: 0.5 }}
             className="inline-block"
           >
             {word}
@@ -92,6 +58,26 @@ export function AnimatedText({
         </span>
       ))}
     </motion.span>
+  );
+}
+
+export function SectionLabel({ children, className }: { children: React.ReactNode; className?: string }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5 }}
+      className={cn(
+        'inline-flex items-center gap-2 px-4 py-2 rounded-full',
+        'bg-primary/8 border border-primary/15 text-primary',
+        'text-xs font-semibold tracking-widest uppercase',
+        className
+      )}
+    >
+      <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+      {children}
+    </motion.div>
   );
 }
 

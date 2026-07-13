@@ -1,253 +1,176 @@
 import { useRef } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { ArrowDown, Download, Mail, Github, Linkedin, ChevronRight } from 'lucide-react';
-import { AuroraBackground } from './components/AuroraBackground';
-import { FloatingTechElements } from './components/FloatingTechElements';
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { ArrowRight } from 'lucide-react';
 import { PERSONAL_INFO } from '@/lib/constants';
-import { useMagneticEffect } from '@/hooks/useMagneticEffect';
-import resumePdf from '@/Rutvik Gohel resume.pdf?url';
-
-const letterVariants = {
-  hidden: { opacity: 0, y: 60, rotateX: -30 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    rotateX: 0,
-    transition: {
-      delay: 0.9 + i * 0.04,
-      duration: 0.7,
-      ease: [0.16, 1, 0.3, 1],
-    },
-  }),
-};
-
-function SplitText({ text, className }: { text: string; className?: string }) {
-  const words = text.split(' ');
-  let charIndex = 0;
-  return (
-    <span className={className}>
-      {words.map((word, wi) => (
-        <span key={wi} className="inline-block mr-[0.25em]">
-          {word.split('').map((char) => {
-            const idx = charIndex++;
-            return (
-              <motion.span key={idx} custom={idx} variants={letterVariants} className="inline-block">
-                {char}
-              </motion.span>
-            );
-          })}
-        </span>
-      ))}
-    </span>
-  );
-}
 
 export function Hero() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start start', 'end start'] });
-  const y = useTransform(scrollYProgress, [0, 1], [0, 120]);
-  const opacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
-  const { ref: btnRef2, onMouseMove: mm2, onMouseLeave: ml2 } = useMagneticEffect<HTMLAnchorElement>({ strength: 20 });
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const scrollToProjects = () => document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth' });
-  const scrollToAbout = () => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' });
+  // Motion values for mouse tracking
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  // Springs for smooth movement easing
+  const springX = useSpring(mouseX, { damping: 40, stiffness: 200 });
+  const springY = useSpring(mouseY, { damping: 40, stiffness: 200 });
+
+  // Map mouse positions to translation values for different parallax layers
+  const gridX = useTransform(springX, [-0.5, 0.5], [-20, 20]);
+  const gridY = useTransform(springY, [-0.5, 0.5], [-20, 20]);
+
+  const starX = useTransform(springX, [-0.5, 0.5], [-40, 40]);
+  const starY = useTransform(springY, [-0.5, 0.5], [-40, 40]);
+
+  const textX = useTransform(springX, [-0.5, 0.5], [10, -10]);
+  const textY = useTransform(springY, [-0.5, 0.5], [10, -10]);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    mouseX.set(x);
+    mouseY.set(y);
+  };
+
+  const handleMouseLeave = () => {
+    mouseX.set(0);
+    mouseY.set(0);
+  };
+
+  const scrollToContact = (e: React.MouseEvent) => {
+    e.preventDefault();
+    document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   return (
     <section
-      ref={sectionRef}
       id="hero"
-      className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden"
+      ref={containerRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className="relative min-h-[90vh] md:min-h-screen flex flex-col justify-center overflow-hidden border-b border-border"
     >
-      <AuroraBackground />
-      <FloatingTechElements />
-
+      {/* Editorial Grid overlay (Parallax Layer 1) */}
       <motion.div
-        style={{ y, opacity }}
-        className="relative z-10 section-container w-full flex flex-col items-center text-center pt-24 sm:pt-32 pb-16 sm:pb-20"
-      >
-        {/* Main headline */}
-        <motion.h1
-          className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight leading-[0.92] mb-6"
-          initial="hidden"
-          animate="visible"
-          style={{ perspective: 800 }}
-        >
-          <div className="overflow-hidden">
-            <SplitText text="I Build Software" className="block text-white" />
-          </div>
-          <div className="overflow-hidden mt-2">
-            <SplitText text="That Scales." className="block gradient-text" />
-          </div>
-        </motion.h1>
+        style={{ x: gridX, y: gridY }}
+        className="absolute inset-x-[-40px] inset-y-[-40px] grid-bg opacity-30 z-0 pointer-events-none"
+      />
 
-        {/* Sub headline */}
-        <motion.p
-          initial={{ opacity: 0, y: 30, filter: 'blur(6px)' }}
-          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-          transition={{ delay: 1.45, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="max-w-2xl text-base sm:text-lg text-white/50 leading-relaxed mb-12 text-balance"
+      {/* Abstract Sun/Moon sky visual container */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+        {/* Day/Sunset sky gradient */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-peach/5 via-bg-alt/20 to-bg transition-opacity duration-1000 dark:opacity-0" />
+        {/* Night sky gradient */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-peach/10 via-[#10121a]/60 to-[#0b0c10] opacity-0 transition-opacity duration-1000 dark:opacity-100" />
+        
+        {/* Editorial constellation background (Parallax Layer 2) */}
+        <motion.svg
+          aria-hidden="true"
+          viewBox="0 0 100 100"
+          preserveAspectRatio="xMidYMid meet"
+          style={{ x: starX, y: starY }}
+          className="absolute right-[5%] top-[12%] h-[30%] w-[35%] opacity-60 text-peach/30 dark:text-peach/40"
         >
-          Full Stack Developer at{' '}
-          <span className="text-primary font-semibold">TretaGen</span>
-          {' '}— crafting enterprise-grade systems with{' '}
-          <span className="text-white/80 font-semibold">.NET Core + React.js</span>.
-          {' '}From PostgreSQL schemas to pixel-perfect interfaces, end to end.
-        </motion.p>
+          <line x1="15" y1="60" x2="30" y2="45" stroke="currentColor" strokeWidth="0.4" strokeDasharray="1 1" />
+          <line x1="30" y1="45" x2="45" y2="58" stroke="currentColor" strokeWidth="0.4" strokeDasharray="1 1" />
+          <line x1="45" y1="58" x2="60" y2="42" stroke="currentColor" strokeWidth="0.4" strokeDasharray="1 1" />
+          <line x1="60" y1="42" x2="75" y2="55" stroke="currentColor" strokeWidth="0.4" strokeDasharray="1 1" />
+          
+          <circle cx="15" cy="60" r="1" fill="currentColor" className="np-star" />
+          <circle cx="30" cy="45" r="0.8" fill="currentColor" className="np-star" style={{ animationDelay: '0.4s' }} />
+          <circle cx="45" cy="58" r="1.2" fill="currentColor" className="np-star" style={{ animationDelay: '0.8s' }} />
+          <circle cx="60" cy="42" r="0.9" fill="currentColor" className="np-star" style={{ animationDelay: '1.2s' }} />
+          <circle cx="75" cy="55" r="1" fill="currentColor" className="np-star" style={{ animationDelay: '1.6s' }} />
+        </motion.svg>
+      </div>
 
-        {/* CTA buttons */}
+      <div className="relative z-10 section-container w-full pt-28 pb-16 md:pt-36 md:pb-24 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        {/* Left Column: Heading, Description & Call to Actions (Parallax Layer 3) */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.65, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 mb-12 sm:mb-16 w-full sm:w-auto"
+          style={{ x: textX, y: textY }}
+          initial={{ opacity: 0, filter: 'blur(12px)', y: 32 }}
+          animate={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="lg:col-span-7 flex flex-col items-start text-left"
         >
-          {/* Primary: gradient + shimmer */}
-          <motion.button
-            onClick={scrollToProjects}
-            className="group relative flex items-center justify-center gap-2.5 px-8 py-4 rounded-xl text-white font-bold text-sm w-full sm:w-auto btn-shimmer"
-            style={{
-              background: 'linear-gradient(135deg, #3B82F6 0%, #8B5CF6 60%, #06B6D4 100%)',
-              boxShadow: '0 4px 30px rgba(59,130,246,0.45), 0 0 0 1px rgba(59,130,246,0.25)',
-            }}
-            whileHover={{
-              scale: 1.04,
-              boxShadow: '0 8px 48px rgba(59,130,246,0.65), 0 0 0 1px rgba(59,130,246,0.55)',
-            }}
-            whileTap={{ scale: 0.97 }}
-          >
-            View My Work
-            <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform duration-200" />
-          </motion.button>
+          {/* Eyebrow */}
+          <div className="eyebrow mb-6">
+            <span className="num">00</span>
+            <span className="rule"></span>
+            <span>{PERSONAL_INFO.role}</span>
+          </div>
 
-          {/* Download Resume: blue tinted outline */}
-          <motion.a
-            ref={btnRef2}
-            href={resumePdf}
-            download="Rutvik_Gohel_Resume.pdf"
-            onMouseMove={mm2}
-            onMouseLeave={ml2}
-            className="group flex items-center justify-center gap-2.5 px-8 py-4 rounded-xl font-bold text-sm w-full sm:w-auto transition-all duration-300"
-            style={{
-              background: 'rgba(59,130,246,0.08)',
-              border: '1px solid rgba(59,130,246,0.4)',
-              color: '#93C5FD',
-              boxShadow: '0 0 0 0px rgba(59,130,246,0)',
-            }}
-            whileHover={{
-              scale: 1.03,
-              background: 'rgba(59,130,246,0.16)',
-              borderColor: 'rgba(59,130,246,0.65)',
-              boxShadow: '0 4px 24px rgba(59,130,246,0.25)',
-            }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <Download size={15} />
-            Download Resume
-          </motion.a>
+          {/* Headline */}
+          <h1 className="font-serif text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-semibold tracking-tight text-ink mb-6 leading-none">
+            Rutvik Gohel
+          </h1>
 
-          {/* Contact Me: ghost */}
-          <motion.button
-            onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
-            className="group flex items-center justify-center gap-2.5 px-8 py-4 rounded-xl font-medium text-sm w-full sm:w-auto transition-all duration-300"
-            style={{
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(255,255,255,0.09)',
-              color: 'rgba(255,255,255,0.45)',
-            }}
-            whileHover={{
-              scale: 1.02,
-              background: 'rgba(255,255,255,0.07)',
-              borderColor: 'rgba(255,255,255,0.18)',
-              color: 'rgba(255,255,255,0.85)',
-            }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <Mail size={15} />
-            Contact Me
-          </motion.button>
+          {/* Description */}
+          <p className="font-serif text-lg md:text-xl text-ink-muted leading-relaxed max-w-xl mb-10">
+            {PERSONAL_INFO.tagline} I build production ASP.NET Core backends, React interfaces, and enterprise systems that streamline workflows and solve complex business operations.
+          </p>
+
+          {/* Buttons */}
+          <div className="flex flex-wrap items-center gap-4">
+            <a
+              href="#contact"
+              onClick={scrollToContact}
+              className="group relative inline-flex items-center gap-3 rounded-full bg-ink px-6 py-3.5 text-sm font-semibold text-bg transition-colors duration-300 hover:bg-peach"
+            >
+              Get in touch
+              <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
+            </a>
+            <a
+              href="#projects"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="inline-flex items-center justify-center border border-border px-6 py-3.5 text-sm font-semibold rounded-full hover:border-peach transition-colors"
+            >
+              View Selected Work
+            </a>
+          </div>
         </motion.div>
 
-        {/* Social links — with labels */}
+        {/* Right Column: Selected Proof Statistics Panel */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.95, duration: 0.6 }}
-          className="flex items-center gap-3 sm:gap-4 mb-12 sm:mb-16"
+          initial={{ opacity: 0, filter: 'blur(12px)', y: 32 }}
+          animate={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
+          transition={{ duration: 0.8, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+          className="lg:col-span-5 w-full mt-10 lg:mt-0 lg:pl-8 border-t lg:border-t-0 lg:border-l border-border pt-8 lg:pt-0"
         >
-          <div className="h-px w-8 sm:w-12 bg-white/10" />
-          <motion.a
-            href={PERSONAL_INFO.linkedin}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl font-medium text-xs transition-all duration-200"
-            style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)', color: '#93C5FD' }}
-            whileHover={{ scale: 1.05, background: 'rgba(59,130,246,0.16)', borderColor: 'rgba(59,130,246,0.45)' }}
-            whileTap={{ scale: 0.97 }}
-          >
-            <Linkedin size={14} />
-            <span className="hidden sm:block">LinkedIn</span>
-          </motion.a>
-          <motion.a
-            href={PERSONAL_INFO.github}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl font-medium text-xs transition-all duration-200"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)', color: 'rgba(255,255,255,0.6)' }}
-            whileHover={{ scale: 1.05, background: 'rgba(255,255,255,0.10)', color: 'rgba(255,255,255,0.9)' }}
-            whileTap={{ scale: 0.97 }}
-          >
-            <Github size={14} />
-            <span className="hidden sm:block">GitHub</span>
-          </motion.a>
-          <motion.a
-            href={`mailto:${PERSONAL_INFO.email}`}
-            className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl font-medium text-xs transition-all duration-200"
-            style={{ background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.2)', color: '#67E8F9' }}
-            whileHover={{ scale: 1.05, background: 'rgba(6,182,212,0.16)', borderColor: 'rgba(6,182,212,0.45)' }}
-            whileTap={{ scale: 0.97 }}
-          >
-            <Mail size={14} />
-            <span className="hidden sm:block">Email</span>
-          </motion.a>
-          <div className="h-px w-8 sm:w-12 bg-white/10" />
-        </motion.div>
-
-        {/* Quick stats */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 2.15, duration: 0.6 }}
-          className="grid grid-cols-3 gap-6 sm:gap-14"
-        >
-          {[
-            { value: '1+', label: 'Year Experience', sub: 'Industry' },
-            { value: '3', label: 'Major Projects', sub: 'Shipped' },
-            { value: '8.45', label: 'CGPA Score', sub: 'MCA · Indus' },
-          ].map((stat) => (
-            <div key={stat.label} className="text-center group cursor-default">
-              <p className="text-3xl sm:text-4xl font-black gradient-text stat-num leading-none mb-1.5 group-hover:scale-110 transition-transform duration-300">
-                {stat.value}
-              </p>
-              <p className="text-xs sm:text-sm font-semibold text-white/60 leading-tight">{stat.label}</p>
-              <p className="text-[9px] sm:text-[10px] text-white/25 font-mono uppercase tracking-wider mt-0.5">{stat.sub}</p>
+          <div className="flex flex-col gap-6">
+            {/* Subsection header */}
+            <div className="flex items-center gap-4 font-mono text-[10px] tracking-[0.25em] text-ink-muted uppercase">
+              <span>Selected Proof</span>
+              <span className="h-px w-12 bg-border"></span>
+              <span>Enterprise Scale</span>
             </div>
-          ))}
+
+            {/* Grid statistics */}
+            <div className="grid grid-cols-3 gap-4 py-4 border-y border-border">
+              <div className="flex flex-col gap-1">
+                <span className="font-sans text-3xl md:text-4xl font-semibold tracking-tight text-ink">3+</span>
+                <span className="font-mono text-[9px] leading-snug tracking-[0.18em] text-ink-muted uppercase">Major Projects Delivered</span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="font-sans text-3xl md:text-4xl font-semibold tracking-tight text-ink">1+</span>
+                <span className="font-mono text-[9px] leading-snug tracking-[0.18em] text-ink-muted uppercase">Years experience</span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="font-sans text-3xl md:text-4xl font-semibold tracking-tight text-ink">8.45</span>
+                <span className="font-mono text-[9px] leading-snug tracking-[0.18em] text-ink-muted uppercase">MCA CGPA</span>
+              </div>
+            </div>
+
+            <p className="text-sm md:text-base text-ink-muted leading-relaxed italic">
+              "Building robust web portals for TretaGen and Novanectar, integrating secure systems, database schema designs, and automated application tracking workflows."
+            </p>
+          </div>
         </motion.div>
-      </motion.div>
-
-      {/* Scroll indicator */}
-      <motion.button
-        onClick={scrollToAbout}
-        className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/30 hover:text-white/60 transition-colors group"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1, y: [0, 6, 0] }}
-        transition={{ delay: 2.6, y: { repeat: Infinity, duration: 2, ease: 'easeInOut' } }}
-      >
-        <span className="text-[10px] tracking-[0.2em] uppercase font-mono">Scroll</span>
-        <ArrowDown size={14} />
-      </motion.button>
-
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#030712] to-transparent pointer-events-none" />
+      </div>
     </section>
   );
 }

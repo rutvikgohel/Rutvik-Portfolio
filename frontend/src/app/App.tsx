@@ -1,28 +1,33 @@
-import { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect } from 'react';
 import Lenis from 'lenis';
-import { Toaster } from 'react-hot-toast';
 
+import { CelestialToggle } from '@/components/ui/CelestialToggle';
+import { TocRail } from '@/components/layout/TocRail';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-import { CommandPalette } from '@/components/shared/CommandPalette';
-import { Loader } from '@/features/loader/Loader';
 import { Hero } from '@/features/hero/Hero';
 import { About } from '@/features/about/About';
 import { Experience } from '@/features/experience/Experience';
 import { Projects } from '@/features/projects/Projects';
 import { Skills } from '@/features/skills/Skills';
-import { Education } from '@/features/education/Education';
 import { Contact } from '@/features/contact/Contact';
 
 export function App() {
-  const [loaded, setLoaded] = useState(false);
-  const [cmdOpen, setCmdOpen] = useState(false);
-
-  // Init smooth scroll
   useEffect(() => {
-    if (!loaded) return;
+    // Set default theme from localStorage or system time
+    try {
+      const saved = localStorage.getItem("site-theme");
+      if (saved === "dark" || saved === "light") {
+        document.documentElement.dataset.theme = saved;
+      } else {
+        const hour = new Date().getHours();
+        document.documentElement.dataset.theme = (hour >= 18 || hour < 6) ? "dark" : "light";
+      }
+    } catch (e) {
+      document.documentElement.dataset.theme = "light";
+    }
 
+    // Lenis smooth scroll
     const lenis = new Lenis({
       duration: 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
@@ -36,77 +41,31 @@ export function App() {
     requestAnimationFrame(raf);
 
     return () => lenis.destroy();
-  }, [loaded]);
-
-  // Command palette shortcut
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        setCmdOpen((o) => !o);
-      }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
   }, []);
-
-  const handleLoaderComplete = useCallback(() => {
-    setLoaded(true);
-    document.body.style.overflow = '';
-  }, []);
-
-  useEffect(() => {
-    if (!loaded) document.body.style.overflow = 'hidden';
-  }, [loaded]);
 
   return (
-    <>
-      {/* Loading screen */}
-      <Loader onComplete={handleLoaderComplete} />
+    <div className="relative min-h-screen bg-bg text-ink antialiased">
+      {/* Warm wash grain background overlay */}
+      <div className="warm-wash" aria-hidden="true" />
 
-      {/* Main content */}
-      <AnimatePresence>
-        {loaded && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6 }}
-          >
-            {/* Command palette */}
-            <CommandPalette isOpen={cmdOpen} onClose={() => setCmdOpen(false)} />
+      {/* Floating Section Progress Sidebar Rail */}
+      <TocRail />
 
-            {/* Toast notifications */}
-            <Toaster
-              position="bottom-right"
-              toastOptions={{
-                style: {
-                  background: '#0F172A',
-                  color: '#fff',
-                  border: '1px solid #1E293B',
-                  fontSize: '13px',
-                  borderRadius: '12px',
-                },
-              }}
-            />
+      {/* Floating back-to-top header pill */}
+      <Navbar />
 
-            {/* Navigation */}
-            <Navbar onCommandPaletteOpen={() => setCmdOpen(true)} />
+      {/* Page Content sections */}
+      <main id="main" className="relative focus:outline-none">
+        <Hero />
+        <About />
+        <Experience />
+        <Projects />
+        <Skills />
+        <Contact />
+      </main>
 
-            {/* Page sections */}
-            <main className="relative">
-              <Hero />
-              <About />
-              <Experience />
-              <Projects />
-              <Skills />
-              <Education />
-              <Contact />
-            </main>
-
-            <Footer />
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+      {/* Simple elegant footer */}
+      <Footer />
+    </div>
   );
 }

@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <defs>
-    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#3B82F6"/>
-      <stop offset="100%" style="stop-color:#8B5CF6"/>
-    </linearGradient>
-  </defs>
-  <rect width="64" height="64" rx="14" fill="url(#g)"/>
-  <text x="32" y="44" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="800" font-size="26" fill="white">RG</text>
+  <!-- Background circular base for high contrast in all browser tabs -->
+  <circle cx="32" cy="32" r="30" fill="#1c1917"/>
+  
+  <!-- Serif Monogram R -->
+  <text x="28" y="44" text-anchor="middle" font-family="Georgia, serif" font-weight="bold" font-size="34" fill="#f5f1e8">R</text>
+  
+  <!-- Celestial orange dot matching the site branding -->
+  <circle cx="48" cy="24" r="5" fill="#e2583e"/>
 </svg>
